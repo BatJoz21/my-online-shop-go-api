@@ -9,6 +9,7 @@ import (
 )
 
 func signup(context *gin.Context) {
+	// Get user's input
 	var signupData models.UserSignUp
 	err := context.ShouldBindJSON(&signupData)
 	if err != nil {
@@ -16,12 +17,14 @@ func signup(context *gin.Context) {
 		return
 	}
 
+	// Hashing password
 	hashedPassword, err := utils.HashPassword(signupData.Password)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
+	// Save new user to Database
 	newUser := models.User{
 		Name:         signupData.Name,
 		Email:        signupData.Email,
@@ -38,6 +41,7 @@ func signup(context *gin.Context) {
 }
 
 func login(context *gin.Context) {
+	// Get user's input
 	var loginData models.UserLogin
 	err := context.ShouldBindJSON(&loginData)
 	if err != nil {
@@ -45,6 +49,7 @@ func login(context *gin.Context) {
 		return
 	}
 
+	// Validate user's input
 	err = models.ValidateCredentials(&loginData)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -57,6 +62,7 @@ func login(context *gin.Context) {
 		return
 	}
 
+	// Generate JWT token
 	accessToken, err := utils.GenerateToken(user.ID, user.Email, string(user.Role))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

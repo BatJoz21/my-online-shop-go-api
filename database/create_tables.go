@@ -71,6 +71,24 @@ func createTables() {
 		panic("Failed to create products table: " + err.Error())
 	}
 
+	createProductVariantsTable := `CREATE TABLE IF NOT EXISTS product_variants (
+		id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+		product_id BIGINT UNSIGNED,
+		name VARCHAR(100) NOT NULL,
+		sku VARCHAR(50) UNIQUE NOT NULL,
+		price_modifier DECIMAL(12, 2) DEFAULT 0,
+
+		CONSTRAINT productvariant_product_id_fk 
+			FOREIGN KEY(product_id) 
+			REFERENCES products (id) 
+			ON DELETE CASCADE 
+			ON UPDATE CASCADE
+	)`
+	_, err = DB.Exec(createProductVariantsTable)
+	if err != nil {
+		panic("Failed to create product_variants table: " + err.Error())
+	}
+
 	createCartsTable := `CREATE TABLE IF NOT EXISTS carts (
 		id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 		user_id BIGINT UNSIGNED UNIQUE,
@@ -92,6 +110,7 @@ func createTables() {
 		id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 		cart_id BIGINT UNSIGNED,
 		product_id BIGINT UNSIGNED,
+		variant_id BIGINT UNSIGNED,
 		quantity INT,
 		price_snapshot DECIMAL(12, 2),
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -104,6 +123,12 @@ func createTables() {
 			ON UPDATE CASCADE,
 
 		CONSTRAINT cartitem_product_id_fk 
+			FOREIGN KEY(product_id) 
+			REFERENCES products (id) 
+			ON DELETE CASCADE 
+			ON UPDATE CASCADE,
+
+		CONSTRAINT cartitem_variant_id_fk 
 			FOREIGN KEY(product_id) 
 			REFERENCES products (id) 
 			ON DELETE CASCADE 
@@ -139,6 +164,7 @@ func createTables() {
 		id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 		order_id BIGINT UNSIGNED,
 		product_id BIGINT UNSIGNED,
+		variant_id BIGINT UNSIGNED,
 		product_name_snapshot VARCHAR(150),
 		quantity INT,
 		price_shapshot DECIMAL(12, 2),
@@ -153,6 +179,12 @@ func createTables() {
 			ON UPDATE CASCADE,
 
 		CONSTRAINT orderitem_product_id_fk 
+			FOREIGN KEY(product_id) 
+			REFERENCES products (id) 
+			ON DELETE CASCADE 
+			ON UPDATE CASCADE,
+
+		CONSTRAINT orderitem_variant_id_fk 
 			FOREIGN KEY(product_id) 
 			REFERENCES products (id) 
 			ON DELETE CASCADE 
