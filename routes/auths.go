@@ -56,18 +56,18 @@ func login(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserDataForSession(loginData.Email)
+	userData, err := models.GetUserDataForSession(loginData.Email)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	// Generate JWT token
-	accessToken, err := utils.GenerateToken(user.ID, user.Email, string(user.Role))
+	accessToken, err := utils.GenerateToken(userData.ID, userData.Email, string(userData.Role))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "Login successful", "jwt_token": accessToken, "user": user})
+	context.JSON(http.StatusOK, gin.H{"message": "Login successful", "jwt_token": accessToken, "user": userData})
 }
