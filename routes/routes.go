@@ -13,4 +13,5 @@ func RegisterRoutes(server *gin.Engine) {
 
 	custGroup := server.Group("/")
 	custGroup.Use(middlewares.Authenticate)
+	custGroup.POST("products", createNewProduct)
 }

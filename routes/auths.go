@@ -14,14 +14,14 @@ func signup(context *gin.Context) {
 	var signupData models.UserSignUp
 	err := context.ShouldBindJSON(&signupData)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error(), "isRegistered": false})
 		return
 	}
 
 	// Hashing password
 	hashedPassword, err := utils.HashPassword(signupData.Password)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error(), "isRegistered": false})
 		return
 	}
 
@@ -34,11 +34,11 @@ func signup(context *gin.Context) {
 	}
 	err = newUser.Save()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error(), "isRegistered": false})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "New user created"})
+	context.JSON(http.StatusOK, gin.H{"message": "New user created", "isRegistered": true})
 }
 
 func login(context *gin.Context) {
