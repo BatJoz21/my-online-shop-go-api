@@ -54,3 +54,13 @@ func GetUserDataForSession(email string) (*StoredUserData, error) {
 
 	return &userData, err
 }
+
+func GetUserDataForRefreshToken(id int64) (*StoredUserData, error) {
+	query := `SELECT id, name, email, role FROM users WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var userData StoredUserData
+	err := row.Scan(&userData.ID, &userData.Name, &userData.Email, &userData.Role)
+
+	return &userData, err
+}

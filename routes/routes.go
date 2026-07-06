@@ -8,6 +8,8 @@ import (
 func RegisterRoutes(server *gin.Engine) {
 	server.POST("register", signup)
 	server.POST("login", login)
+	server.POST("logout", logout)
+	server.POST("refresh", refreshJWT)
 
 	custGroup := server.Group("/")
 	custGroup.Use(middlewares.Authenticate)

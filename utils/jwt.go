@@ -21,30 +21,31 @@ func GenerateToken(user_id int64, email, role string) (string, error) {
 	return token.SignedString([]byte(secretkey))
 }
 
-func VerifyAccessToken(token string) (int64, string, error) {
+func VerifyAccessToken(token string) (int64, string, string, error) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, errors.New("Unexpected signing method")
 		}
 
-		return secretkey, nil
+		return []byte(secretkey), nil
 	})
 	if err != nil {
-		return 0, "", err
+		return 0, "", "", err
 	}
 
 	if !parsedToken.Valid {
-		return 0, "", errors.New("Invalid token")
+		return 0, "", "", errors.New("Invalid token")
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, "", errors.New("Invalid token claims")
+		return 0, "", "", errors.New("Invalid token claims")
 	}
 
 	user_id := int64(claims["user_id"].(float64))
+	email := claims["email"].(string)
 	role := claims["role"].(string)
 
-	return user_id, role, nil
+	return user_id, email, role, nil
 }
