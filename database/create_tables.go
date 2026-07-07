@@ -54,7 +54,6 @@ func createTables() {
 		slug VARCHAR(180) UNIQUE NOT NULL,
 		description TEXT,
 		price DECIMAL(12, 2) NOT NULL,
-		stock INT DEFAULT 0,
 		image VARCHAR(225) NULL,
 		is_active BOOLEAN DEFAULT TRUE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -77,6 +76,7 @@ func createTables() {
 		name VARCHAR(100) NOT NULL,
 		sku VARCHAR(50) UNIQUE NOT NULL,
 		price_modifier DECIMAL(12, 2) DEFAULT 0,
+		stock INT DEFAULT 0,
 
 		CONSTRAINT productvariant_product_id_fk 
 			FOREIGN KEY(product_id) 

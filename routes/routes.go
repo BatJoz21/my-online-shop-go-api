@@ -18,6 +18,7 @@ func RegisterRoutes(server *gin.Engine) {
 	custGroup := server.Group("/")
 	custGroup.Use(middlewares.Authenticate)
 	custGroup.GET("products/:id", getProduct)
+	custGroup.GET("products/:id/variants", getAllProductVariants)
 
 	merchantGroup := server.Group("/")
 	merchantGroup.Use(middlewares.Authenticate)

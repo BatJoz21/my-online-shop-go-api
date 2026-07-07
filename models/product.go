@@ -16,22 +16,21 @@ type Product struct {
 	Slug         string          `json:"slug"`
 	Description  string          `json:"description"`
 	Price        decimal.Decimal `json:"price"`
-	Stock        int64           `json:"stock"`
 	Image        *string         `json:"image"`
 	IsActive     bool            `json:"is_active"`
 	CategoryName string          `json:"category_name"`
 }
 
 func (p *Product) Save() error {
-	query := `INSERT INTO products(category_id, name, slug, description, price, stock, image)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO products(category_id, name, slug, description, price, image)
+		VALUES (?, ?, ?, ?, ?, ?)`
 	stmt, err := database.DB.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(p.CategoryID, p.Name, p.Slug, p.Description, p.Price, p.Stock, p.Image)
+	result, err := stmt.Exec(p.CategoryID, p.Name, p.Slug, p.Description, p.Price, p.Image)
 	if err != nil {
 		return err
 	}
@@ -53,13 +52,12 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 		products.slug,
 		products.description,
 		products.price,
-		products.stock,
 		products.image,
 		products.is_active,
 		categories.name AS category_name
 	FROM products
 	JOIN categories ON products.category_id = categories.id
-	WHERE products.stock > 0 LIMIT ? OFFSET ?`
+	LIMIT ? OFFSET ?`
 
 	rows, err := database.DB.Query(query, ProductPerPageLimit, offset)
 	if err != nil {
@@ -71,7 +69,7 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 	for rows.Next() {
 		var product Product
 		err = rows.Scan(&product.ID, &product.CategoryID, &product.Name, &product.Slug,
-			&product.Description, &product.Price, &product.Stock, &product.Image,
+			&product.Description, &product.Price, &product.Image,
 			&product.IsActive, &product.CategoryName)
 		if err != nil {
 			return nil, err
@@ -91,7 +89,6 @@ func GetProduct(id int64) (*Product, error) {
 		products.slug,
 		products.description,
 		products.price,
-		products.stock,
 		products.image,
 		products.is_active,
 		categories.name AS category_name
@@ -102,7 +99,7 @@ func GetProduct(id int64) (*Product, error) {
 
 	var product Product
 	err := row.Scan(&product.ID, &product.CategoryID, &product.Name, &product.Slug,
-		&product.Description, &product.Price, &product.Stock, &product.Image,
+		&product.Description, &product.Price, &product.Image,
 		&product.IsActive, &product.CategoryName)
 	if err != nil {
 		return nil, err

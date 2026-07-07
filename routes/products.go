@@ -16,11 +16,6 @@ func createNewProduct(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	stock, err := strconv.ParseInt(context.PostForm("stock"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
 	price, err := decimal.NewFromString(context.PostForm("price"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -43,7 +38,6 @@ func createNewProduct(context *gin.Context) {
 		Slug:        context.PostForm("slug"),
 		Description: context.PostForm("description"),
 		Price:       price,
-		Stock:       stock,
 		Image:       image,
 	}
 	err = product.Save()

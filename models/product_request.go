@@ -6,4 +6,5 @@ type NewProductVariant struct {
 	Name          string          `json:"name" binding:"required"`
 	Sku           string          `json:"sku" binding:"required"`
 	PriceModifier decimal.Decimal `json:"price_modifier" binding:"required"`
+	Stock         int64           `json:"stock" binding:"required"`
 }
