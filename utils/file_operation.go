@@ -60,7 +60,7 @@ func SaveProductImage(file *multipart.FileHeader, context *gin.Context) (*string
 	os.MkdirAll(UploadRoots+ProductImageDir, os.ModePerm)
 
 	filename := fmt.Sprintf("product_image_%d%s", time.Now().UnixNano(), extension)
-	path := filepath.Join(UploadRoots, ProductImageDir, filename)
+	path := GetProductImagePath(&filename)
 
 	err = context.SaveUploadedFile(file, path)
 	if err != nil {
@@ -68,4 +68,8 @@ func SaveProductImage(file *multipart.FileHeader, context *gin.Context) (*string
 	}
 
 	return &filename, nil
+}
+
+func GetProductImagePath(filename *string) string {
+	return filepath.Join(UploadRoots, ProductImageDir, *filename)
 }
