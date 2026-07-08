@@ -70,6 +70,20 @@ func SaveProductImage(file *multipart.FileHeader, context *gin.Context) (*string
 	return &filename, nil
 }
 
+func RemoveProductImage(filename *string) error {
+	path := GetProductImagePath(filename)
+
+	_, err := os.Stat(path)
+	if err == nil {
+		err = os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func GetProductImagePath(filename *string) string {
 	return filepath.Join(UploadRoots, ProductImageDir, *filename)
 }

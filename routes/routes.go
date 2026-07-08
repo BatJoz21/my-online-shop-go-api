@@ -24,5 +24,9 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.Use(middlewares.Authenticate)
 	merchantGroup.Use(middlewares.MerchantMiddleware())
 	merchantGroup.POST("products", createNewProduct)
+	merchantGroup.PUT("products/:id", updateProduct)
+	merchantGroup.PUT("products/:id/restore", restoreSoftDeletedProduct)
+	merchantGroup.DELETE("products/:id", softDeleteProduct)
+	merchantGroup.DELETE("products/:id/delete", deleteProduct)
 	merchantGroup.POST("products/:id/variants", createProductVariant)
 }

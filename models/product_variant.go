@@ -64,3 +64,15 @@ func GetAllVariantOfAProduct(id int64) (*[]ProductVariant, error) {
 
 	return &variants, nil
 }
+
+func DeleteAllVariantOfAProduct(product_id int64) error {
+	query := `DELETE FROM product_variants WHERE product_id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return nil
+	}
+
+	_, err = stmt.Exec(product_id)
+
+	return err
+}
