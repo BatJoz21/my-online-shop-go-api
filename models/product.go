@@ -149,6 +149,7 @@ func (p *Product) Update() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(p.CategoryID, p.Name, p.Slug, p.Description, p.Price, p.Image, p.ID, 1)
 
@@ -161,6 +162,7 @@ func (p *Product) Restore() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(1, p.ID)
 
@@ -173,6 +175,7 @@ func (p *Product) SoftDelete() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(p.ID)
 
@@ -185,6 +188,7 @@ func (p *Product) Delete() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(p.ID)
 

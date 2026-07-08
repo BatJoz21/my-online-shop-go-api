@@ -29,4 +29,7 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.DELETE("products/:id", softDeleteProduct)
 	merchantGroup.DELETE("products/:id/delete", deleteProduct)
 	merchantGroup.POST("products/:id/variants", createProductVariant)
+	merchantGroup.PUT("products/:id/variants/:variant_id", updateProductVariant)
+	merchantGroup.PUT("products/:id/variants/:variant_id/stock", updateVariantStock)
+	merchantGroup.DELETE("products/:id/variants/:variant_id", deleteVariant)
 }

@@ -35,7 +35,7 @@ func (pV *ProductVariant) Save() error {
 	return nil
 }
 
-func GetAllVariantOfAProduct(id int64) (*[]ProductVariant, error) {
+func GetAllVariantOfAProduct(product_id int64) (*[]ProductVariant, error) {
 	query := `SELECT
 		id,
 		product_id,
@@ -45,7 +45,7 @@ func GetAllVariantOfAProduct(id int64) (*[]ProductVariant, error) {
 		stock
 	FROM product_variants
 	WHERE product_id = ?`
-	rows, err := database.DB.Query(query, id)
+	rows, err := database.DB.Query(query, product_id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +65,59 @@ func GetAllVariantOfAProduct(id int64) (*[]ProductVariant, error) {
 	return &variants, nil
 }
 
+func GetVariant(id int64) (*ProductVariant, error) {
+	query := `SELECT
+		id,
+		product_id,
+		name,
+		sku,
+		price_modifier,
+		stock
+	FROM product_variants
+	WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var pv ProductVariant
+	err := row.Scan(&pv.ID, &pv.ProductID, &pv.Name, &pv.Sku, &pv.PriceModifier, &pv.Stock)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pv, nil
+}
+
+func (pV *ProductVariant) Update() error {
+	query := `UPDATE product_variants SET
+		product_id = ?,
+		name = ?,
+		sku = ?,
+		price_modifier = ?,
+		stock = ?
+	WHERE id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(pV.ProductID, pV.Name, pV.Sku, pV.PriceModifier, pV.Stock, pV.ID)
+
+	return err
+}
+
+func (pv *ProductVariant) UpdateStock() error {
+	query := `UPDATE product_variants SET stock = ? WHERE id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(pv.Stock, pv.ID)
+
+	return err
+}
+
 func DeleteAllVariantOfAProduct(product_id int64) error {
 	query := `DELETE FROM product_variants WHERE product_id = ?`
 	stmt, err := database.DB.Prepare(query)
@@ -73,6 +126,18 @@ func DeleteAllVariantOfAProduct(product_id int64) error {
 	}
 
 	_, err = stmt.Exec(product_id)
+
+	return err
+}
+
+func (pv *ProductVariant) Delete() error {
+	query := `DELETE FROM product_variants WHERE id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return nil
+	}
+
+	_, err = stmt.Exec(pv.ID)
 
 	return err
 }
