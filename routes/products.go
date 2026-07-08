@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -191,7 +192,7 @@ func restoreSoftDeletedProduct(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"is_restored": true, "message": "Product not active"})
+	context.JSON(http.StatusOK, gin.H{"is_restored": true, "message": "Product is active"})
 }
 
 func softDeleteProduct(context *gin.Context) {
@@ -206,6 +207,7 @@ func softDeleteProduct(context *gin.Context) {
 		context.JSON(http.StatusNotFound, gin.H{"is_softDelete": false, "message": err.Error()})
 		return
 	}
+	fmt.Println(product.ID)
 
 	err = product.SoftDelete()
 	if err != nil {
@@ -232,6 +234,14 @@ func deleteProduct(context *gin.Context) {
 
 	// Delete all variant
 	err = models.DeleteAllVariantOfAProduct(product.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"is_delete": false,
+			"message": err.Error()})
+		return
+	}
+
+	// Delete product image
+	err = utils.RemoveProductImage(product.Image)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"is_delete": false,
 			"message": err.Error()})

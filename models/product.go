@@ -96,12 +96,12 @@ func GetActiveProduct(id int64) (*Product, error) {
 	FROM products
 	JOIN categories ON products.category_id = categories.id
 	WHERE products.id = ? AND is_active = ?`
-	row := database.DB.QueryRow(query, id)
+	row := database.DB.QueryRow(query, id, 1)
 
 	var product Product
 	err := row.Scan(&product.ID, &product.CategoryID, &product.Name, &product.Slug,
 		&product.Description, &product.Price, &product.Image,
-		&product.IsActive, &product.CategoryName, 1)
+		&product.IsActive, &product.CategoryName)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func GetProduct(id int64) (*Product, error) {
 	var product Product
 	err := row.Scan(&product.ID, &product.CategoryID, &product.Name, &product.Slug,
 		&product.Description, &product.Price, &product.Image,
-		&product.IsActive, &product.CategoryName, 1)
+		&product.IsActive, &product.CategoryName)
 	if err != nil {
 		return nil, err
 	}
@@ -168,13 +168,13 @@ func (p *Product) Restore() error {
 }
 
 func (p *Product) SoftDelete() error {
-	query := `UPDATE products SET is_active = ? WHERE id = ?`
+	query := `UPDATE products SET is_active = 0 WHERE id = ?`
 	stmt, err := database.DB.Prepare(query)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(0, p.ID)
+	_, err = stmt.Exec(p.ID)
 
 	return err
 }

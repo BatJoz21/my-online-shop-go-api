@@ -31,5 +31,5 @@ go.work.sum
 # .idea/
 # .vscode/
 
-uploads/*
-!uploads/.gitkeep
+# uploads/*
+# !uploads/.gitkeep
