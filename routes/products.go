@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -69,18 +68,27 @@ func getAllProducts(context *gin.Context) {
 	context.JSON(http.StatusOK, products)
 }
 
-func getProductImage(context *gin.Context) {
-	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+func getAllStockedProducts(context *gin.Context) {
+	category := context.DefaultQuery("category", "")
+
+	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	offset := models.ProductPerPageLimit * (page - 1)
 
-	product, err := models.GetActiveProduct(id)
+	products, err := models.GetAllStockedProducts(category, offset)
 	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	context.JSON(http.StatusOK, products)
+}
+
+func getProductImage(context *gin.Context) {
+	product := getProductForOperation(context)
 
 	if product.Image == nil {
 		context.Status(http.StatusNoContent)
@@ -93,6 +101,12 @@ func getProductImage(context *gin.Context) {
 }
 
 func getProduct(context *gin.Context) {
+	product := getProductForOperation(context)
+
+	context.JSON(http.StatusOK, product)
+}
+
+func getStockedProduct(context *gin.Context) {
 	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -109,19 +123,8 @@ func getProduct(context *gin.Context) {
 }
 
 func updateProduct(context *gin.Context) {
-	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"is_updated": false,
-			"message": err.Error()})
-		return
-	}
-
-	product, err := models.GetActiveProduct(id)
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"is_updated": false,
-			"message": err.Error()})
-		return
-	}
+	// Get existing product
+	product := getProductForOperation(context)
 
 	category_id, err := strconv.ParseInt(context.PostForm("category_id"), 10, 64)
 	if err != nil {
@@ -172,20 +175,11 @@ func updateProduct(context *gin.Context) {
 }
 
 func restoreSoftDeletedProduct(context *gin.Context) {
-	// Get existing soft deleted product
-	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"is_restored": false, "message": err.Error()})
-		return
-	}
-	product, err := models.GetProduct(id)
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"is_restored": false, "message": err.Error()})
-		return
-	}
+	// Get existing product
+	product := getProductForOperation(context)
 
 	// Restoring product
-	err = product.Restore()
+	err := product.Restore()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"is_restored": false,
 			"message": err.Error()})
@@ -196,20 +190,10 @@ func restoreSoftDeletedProduct(context *gin.Context) {
 }
 
 func softDeleteProduct(context *gin.Context) {
-	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"is_softDelete": false, "message": err.Error()})
-		return
-	}
+	// Get existing product
+	product := getProductForOperation(context)
 
-	product, err := models.GetActiveProduct(id)
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"is_softDelete": false, "message": err.Error()})
-		return
-	}
-	fmt.Println(product.ID)
-
-	err = product.SoftDelete()
+	err := product.SoftDelete()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"is_softDelete": false,
 			"message": err.Error()})
@@ -221,19 +205,10 @@ func softDeleteProduct(context *gin.Context) {
 
 func deleteProduct(context *gin.Context) {
 	// Get existing product
-	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"is_delete": false, "message": err.Error()})
-		return
-	}
-	product, err := models.GetProduct(id)
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{"is_delete": false, "message": err.Error()})
-		return
-	}
+	product := getProductForOperation(context)
 
 	// Delete all variant
-	err = models.DeleteAllVariantOfAProduct(product.ID)
+	err := models.DeleteAllVariantOfAProduct(product.ID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"is_delete": false,
 			"message": err.Error()})
@@ -257,4 +232,19 @@ func deleteProduct(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, gin.H{"is_delete": true, "message": "Product deleted"})
+}
+
+func getProductForOperation(context *gin.Context) *models.Product {
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"is_delete": false, "message": err.Error()})
+		return nil
+	}
+	product, err := models.GetProduct(id)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"is_delete": false, "message": err.Error()})
+		return nil
+	}
+
+	return product
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/BatJoz21/my-online-shop-go-api/models"
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 func createProductVariant(context *gin.Context) {
@@ -15,8 +16,17 @@ func createProductVariant(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-
 	productId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	priceModifier, err := decimal.NewFromString(newVariant.PriceModifier)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	stock, err := strconv.ParseInt(newVariant.Stock, 10, 64)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -26,8 +36,8 @@ func createProductVariant(context *gin.Context) {
 		ProductID:     productId,
 		Name:          newVariant.Name,
 		Sku:           newVariant.Sku,
-		PriceModifier: newVariant.PriceModifier,
-		Stock:         newVariant.Stock,
+		PriceModifier: priceModifier,
+		Stock:         stock,
 	}
 
 	err = variant.Save()
@@ -55,6 +65,12 @@ func getAllProductVariants(context *gin.Context) {
 	context.JSON(http.StatusOK, variants)
 }
 
+func getProductVariant(context *gin.Context) {
+	variant := getExistingVariant(context)
+
+	context.JSON(http.StatusOK, variant)
+}
+
 func updateProductVariant(context *gin.Context) {
 	// Get existing product
 	variant := getExistingVariant(context)
@@ -66,12 +82,22 @@ func updateProductVariant(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	priceModifier, err := decimal.NewFromString(variantDTO.PriceModifier)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	stock, err := strconv.ParseInt(variantDTO.Stock, 10, 64)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
 
 	// Set input value to struct
 	variant.Name = variantDTO.Name
 	variant.Sku = variantDTO.Sku
-	variant.PriceModifier = variantDTO.PriceModifier
-	variant.Stock = variantDTO.Stock
+	variant.PriceModifier = priceModifier
+	variant.Stock = stock
 
 	// Update
 	err = variant.Update()

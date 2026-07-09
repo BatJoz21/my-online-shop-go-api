@@ -58,6 +58,7 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 	FROM products
 	JOIN categories ON products.category_id = categories.id
 	WHERE products.is_active = ?
+	ORDER BY products.id ASC
 	LIMIT ? OFFSET ?`
 
 	rows, err := database.DB.Query(query, 1, ProductPerPageLimit, offset)
@@ -82,6 +83,67 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 	return products, nil
 }
 
+func GetAllStockedProducts(category string, offset int) (*[]Product, error) {
+	query := `SELECT
+		products.id,
+		products.category_id,
+		products.name,
+		products.slug,
+		products.description,
+		products.price,
+		products.image,
+		products.is_active,
+		categories.name AS category_name
+	FROM products
+	JOIN product_variants ON products.id = product_variants.product_id
+	JOIN categories ON products.category_id = categories.id
+	WHERE products.is_active = ?`
+
+	var args []any
+	args = append(args, 1)
+
+	if category != "" {
+		query += ` AND products.category_id = ?`
+		if category == "accessories" {
+			args = append(args, 3)
+		} else if category == "footwear" {
+			args = append(args, 2)
+		} else {
+			args = append(args, 1)
+		}
+	}
+
+	query += ` 
+	GROUP BY product_variants.product_id
+	HAVING SUM(product_variants.stock) > 0
+	ORDER BY products.id ASC
+	LIMIT ? OFFSET ?`
+
+	args = append(args, ProductPerPageLimit)
+	args = append(args, offset)
+
+	rows, err := database.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []Product
+	for rows.Next() {
+		var product Product
+		err = rows.Scan(&product.ID, &product.CategoryID, &product.Name, &product.Slug,
+			&product.Description, &product.Price, &product.Image,
+			&product.IsActive, &product.CategoryName)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return &products, nil
+}
+
 func GetActiveProduct(id int64) (*Product, error) {
 	query := `SELECT
 		products.id,
@@ -94,8 +156,11 @@ func GetActiveProduct(id int64) (*Product, error) {
 		products.is_active,
 		categories.name AS category_name
 	FROM products
+	JOIN product_variants ON products.id = product_variants.product_id
 	JOIN categories ON products.category_id = categories.id
-	WHERE products.id = ? AND is_active = ?`
+	WHERE products.id = ? AND is_active = ?
+	GROUP BY product_variants.product_id
+	HAVING SUM(product_variants.stock) > 0`
 	row := database.DB.QueryRow(query, id, 1)
 
 	var product Product
