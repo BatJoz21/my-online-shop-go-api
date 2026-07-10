@@ -145,7 +145,7 @@ func createTables() {
 		order_number VARCHAR(30) UNIQUE,
 		status ENUM('pending', 'paid', 'shipped', 'completed', 'cancelled') DEFAULT 'pending',
 		total_amount DECIMAL(12, 2),
-		shipping_address TEXT NOT NULL,
+		shipping_address TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

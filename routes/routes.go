@@ -19,11 +19,14 @@ func RegisterRoutes(server *gin.Engine) {
 	custGroup.Use(middlewares.Authenticate)
 	custGroup.GET("products/:id", getStockedProduct)
 	custGroup.GET("products/:id/variants", getAllProductVariants)
+
 	custGroup.GET("cart", getCartID)
 	custGroup.POST("addToCart", addItemToCart)
 	custGroup.GET("carts", getAllItemOnCart)
 	custGroup.PUT("carts/:id", updateItemInCart)
 	custGroup.DELETE("carts/:id", removeItemFromCart)
+
+	custGroup.POST("orders", generateNewOrder)
 
 	merchantGroup := server.Group("/")
 	merchantGroup.Use(middlewares.Authenticate)
@@ -35,6 +38,7 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.PUT("products/:id/restore", restoreSoftDeletedProduct)
 	merchantGroup.DELETE("products/:id", softDeleteProduct)
 	merchantGroup.DELETE("products/:id/delete", deleteProduct)
+	
 	merchantGroup.POST("products/:id/variants", createProductVariant)
 	merchantGroup.GET("products/:id/variants/:variant_id", getProductVariant)
 	merchantGroup.PUT("products/:id/variants/:variant_id", updateProductVariant)
