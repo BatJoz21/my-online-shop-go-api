@@ -80,10 +80,14 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 		products = append(products, product)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return products, nil
 }
 
-func GetAllStockedProducts(category string, offset int) (*[]Product, error) {
+func GetAllStockedProducts(category int64, search string, offset int) (*[]Product, error) {
 	query := `SELECT
 		products.id,
 		products.category_id,
@@ -102,15 +106,15 @@ func GetAllStockedProducts(category string, offset int) (*[]Product, error) {
 	var args []any
 	args = append(args, 1)
 
-	if category != "" {
+	if category != 0 {
 		query += ` AND products.category_id = ?`
-		if category == "accessories" {
-			args = append(args, 3)
-		} else if category == "footwear" {
-			args = append(args, 2)
-		} else {
-			args = append(args, 1)
-		}
+		args = append(args, category)
+	}
+
+	if search != "" {
+		query += ` AND products.name LIKE ?`
+		search = "%" + search + "%"
+		args = append(args, search)
 	}
 
 	query += ` 
@@ -139,6 +143,10 @@ func GetAllStockedProducts(category string, offset int) (*[]Product, error) {
 		}
 
 		products = append(products, product)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return &products, nil

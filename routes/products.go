@@ -69,7 +69,20 @@ func getAllProducts(context *gin.Context) {
 }
 
 func getAllStockedProducts(context *gin.Context) {
-	category := context.DefaultQuery("category", "")
+	var err error
+	category := context.DefaultQuery("category_id", "")
+	var categoryID int64
+	if category != "" {
+		categoryID, err = strconv.ParseInt(category, 10, 64)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+	} else {
+		categoryID = 0
+	}
+
+	search := context.DefaultQuery("search", "")
 
 	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
 	if err != nil {
@@ -78,7 +91,7 @@ func getAllStockedProducts(context *gin.Context) {
 	}
 	offset := models.ProductPerPageLimit * (page - 1)
 
-	products, err := models.GetAllStockedProducts(category, offset)
+	products, err := models.GetAllStockedProducts(categoryID, search, offset)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
