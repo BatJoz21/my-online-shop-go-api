@@ -129,8 +129,8 @@ func createTables() {
 			ON UPDATE CASCADE,
 
 		CONSTRAINT cartitem_variant_id_fk 
-			FOREIGN KEY(product_id) 
-			REFERENCES products (id) 
+			FOREIGN KEY(variant_id) 
+			REFERENCES product_variants (id) 
 			ON DELETE CASCADE 
 			ON UPDATE CASCADE
 	)`

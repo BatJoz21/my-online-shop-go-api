@@ -38,6 +38,12 @@ func signup(context *gin.Context) {
 		return
 	}
 
+	err = models.GenerateNewCart(newUser.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error(), "isRegistered": false})
+		return
+	}
+
 	context.JSON(http.StatusOK, gin.H{"message": "New user created", "isRegistered": true})
 }
 
