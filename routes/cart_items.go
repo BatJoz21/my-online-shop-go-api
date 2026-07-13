@@ -112,3 +112,19 @@ func removeItemFromCart(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"message": "Item removed from cart"})
 }
+
+func removeAllItemFromCart(context *gin.Context) {
+	cartID, err := models.GetUserCartID(context.GetInt64("userId"))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	err = models.EmptyCart(*cartID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Your cart is now empty"})
+}

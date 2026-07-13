@@ -167,7 +167,7 @@ func createTables() {
 		variant_id BIGINT UNSIGNED,
 		product_name_snapshot VARCHAR(150),
 		quantity INT,
-		price_shapshot DECIMAL(12, 2),
+		price_snapshot DECIMAL(12, 2),
 		subtotal DECIMAL(12, 2),
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -185,8 +185,8 @@ func createTables() {
 			ON UPDATE CASCADE,
 
 		CONSTRAINT orderitem_variant_id_fk 
-			FOREIGN KEY(product_id) 
-			REFERENCES products (id) 
+			FOREIGN KEY(variant_id) 
+			REFERENCES product_variants (id) 
 			ON DELETE CASCADE 
 			ON UPDATE CASCADE
 	)`

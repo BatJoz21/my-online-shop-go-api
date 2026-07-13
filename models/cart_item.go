@@ -104,3 +104,16 @@ func DeleteCartItem(id int64) error {
 
 	return err
 }
+
+func EmptyCart(cartID int64) error {
+	query := `DELETE FROM cart_items WHERE cart_id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(cartID)
+
+	return err
+}

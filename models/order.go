@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/BatJoz21/my-online-shop-go-api/database"
 	"github.com/shopspring/decimal"
 )
@@ -12,6 +14,7 @@ type Order struct {
 	Status          string          `json:"status"`
 	TotalAmount     decimal.Decimal `json:"total_amount"`
 	ShippingAddress string          `json:"shipping_address"`
+	CreatedAt       time.Time       `json:"created_at"`
 }
 
 func (o *Order) GenerateNew() error {
@@ -21,9 +24,9 @@ func (o *Order) GenerateNew() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
-	result, err := stmt.Exec(o.UserID, o.OrderNumber, o.Status,
-		o.TotalAmount, o.ShippingAddress)
+	result, err := stmt.Exec(o.UserID, o.OrderNumber, o.Status, 0, o.ShippingAddress)
 	if err != nil {
 		return err
 	}
@@ -36,17 +39,60 @@ func (o *Order) GenerateNew() error {
 	return nil
 }
 
-func GetTodayTotalOrder() (int, error) {
-	query := `SELECT COUNT(*) FROM orders WHERE created_at = CURDATE()`
-	row := database.DB.QueryRow(query)
-
-	var total int
-	err := row.Scan(&total)
+func GetOrders(userID int64) (*[]Order, error) {
+	query := `SELECT
+		id,
+		user_id,
+		order_number,
+		status,
+		total_amount,
+		shipping_address,
+		created_at
+	FROM orders WHERE user_id = ?`
+	rows, err := database.DB.Query(query, userID)
 	if err != nil {
-		return -1, err
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders []Order
+	for rows.Next() {
+		var order Order
+		err := rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
+			&order.TotalAmount, &order.ShippingAddress, &order.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
 	}
 
-	return total, nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &orders, nil
+}
+
+func GetOrder(id int64) (*Order, error) {
+	query := `SELECT
+		id,
+		user_id,
+		order_number,
+		status,
+		total_amount,
+		shipping_address
+	FROM orders WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var order Order
+	err := row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
+		&order.TotalAmount, &order.ShippingAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
 }
 
 func (o *Order) InputData() error {
@@ -58,8 +104,9 @@ func (o *Order) InputData() error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
-	_, err = stmt.Exec(o.OrderNumber, o.TotalAmount)
+	_, err = stmt.Exec(o.OrderNumber, o.TotalAmount, o.ID)
 
 	return err
 }

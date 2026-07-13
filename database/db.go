@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -20,6 +21,7 @@ func InitDB() {
 		panic("Couldn't connect to database: " + err.Error())
 	}
 
+	DB.SetConnMaxLifetime(5 * time.Minute)
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
 
