@@ -81,18 +81,33 @@ func GetOrder(id int64) (*Order, error) {
 		order_number,
 		status,
 		total_amount,
-		shipping_address
+		shipping_address,
+		created_at
 	FROM orders WHERE id = ?`
 	row := database.DB.QueryRow(query, id)
 
 	var order Order
 	err := row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-		&order.TotalAmount, &order.ShippingAddress)
+		&order.TotalAmount, &order.ShippingAddress, &order.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
 	return &order, nil
+}
+
+func GetOrderForShowPage(id int64) (*Order, *[]OrderItem, error) {
+	order, err := GetOrder(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	orderItems, err := GetAllItemFromOrder(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return order, orderItems, nil
 }
 
 func (o *Order) InputData() error {
@@ -107,6 +122,19 @@ func (o *Order) InputData() error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(o.OrderNumber, o.TotalAmount, o.ID)
+
+	return err
+}
+
+func (o *Order) Delete() error {
+	query := `DELETE FROM orders WHERE id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(o.ID)
 
 	return err
 }

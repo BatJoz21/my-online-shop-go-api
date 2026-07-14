@@ -83,3 +83,40 @@ func populateGeneratedOrder(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"message": "Finished setting up Order"})
 }
+
+func showOrderDetail(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("orderID"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	order, orderItems, err := models.GetOrderForShowPage(id)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"order": order, "orderItems": orderItems})
+}
+
+func deleteOrder(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("orderID"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	o, err := models.GetOrder(id)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	err = o.Delete()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Deleted"})
+}

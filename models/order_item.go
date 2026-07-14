@@ -78,6 +78,29 @@ func GetAllItemFromOrder(orderID int64) (*[]OrderItem, error) {
 	return &orderItems, nil
 }
 
+func GetAnItemFromOrder(id int64) (*OrderItem, error) {
+	query := `SELECT
+		id,
+		order_id,
+		product_id,
+		variant_id,
+		product_name_snapshot,
+		quantity,
+		price_snapshot,
+		subtotal
+	FROM order_items WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var orderItem OrderItem
+	err := row.Scan(&orderItem.ID, &orderItem.OrderID, &orderItem.ProductID, &orderItem.VariantID,
+		&orderItem.ProductName, &orderItem.Quantity, &orderItem.PriceSnapshot, &orderItem.Subtotal)
+	if err != nil {
+		return nil, err
+	}
+
+	return &orderItem, nil
+}
+
 func GetTotalAmountFromOrderItems(orderID int64) (*string, error) {
 	query := `SELECT SUM(subtotal) FROM order_items WHERE order_id = ?`
 	row := database.DB.QueryRow(query, orderID)
@@ -89,4 +112,17 @@ func GetTotalAmountFromOrderItems(orderID int64) (*string, error) {
 	}
 
 	return &subtotal, nil
+}
+
+func (o *OrderItem) Delete() error {
+	query := `DELETE FROM order_items WHERE id = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(o.ID)
+
+	return err
 }

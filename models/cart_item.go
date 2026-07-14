@@ -72,6 +72,19 @@ func GetAllItemInCart(cartID int64) (*[]CartItemResponse, error) {
 	return &cartItems, nil
 }
 
+func GetTotalItemInACart(cartID int64) (int, error) {
+	query := `SELECT COUNT(*) FROM cart_items WHERE cart_id = ?`
+	row := database.DB.QueryRow(query, cartID)
+
+	var total int
+	err := row.Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
 func (c *CartItems) Update() error {
 	query := `UPDATE cart_items SET
 		variant_id = ?,

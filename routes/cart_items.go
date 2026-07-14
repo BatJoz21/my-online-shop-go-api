@@ -61,6 +61,22 @@ func getAllItemOnCart(context *gin.Context) {
 	context.JSON(http.StatusOK, items)
 }
 
+func getTotalItemOnCart(context *gin.Context) {
+	cartID, err := models.GetUserCartID(context.GetInt64("userId"))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	total, err := models.GetTotalItemInACart(*cartID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, total)
+}
+
 func updateItemInCart(context *gin.Context) {
 	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {

@@ -43,11 +43,6 @@ func addItemToOrder(context *gin.Context) {
 		return
 	}
 	variant.Stock = variant.Stock - int64(itemQuantity)
-	err = variant.UpdateStock()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
 
 	priceSnap, err := decimal.NewFromString(dto.PriceSnapshot)
 	if err != nil {
@@ -73,7 +68,13 @@ func addItemToOrder(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "Success"})
+	err = variant.UpdateStock()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Success", "orderItem": orderItem})
 }
 
 func getAllItemsFromAnOrder(context *gin.Context) {
@@ -90,4 +91,39 @@ func getAllItemsFromAnOrder(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, orderItems)
+}
+
+func deleteOrderItem(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("orderItemID"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	item, err := models.GetAnItemFromOrder(id)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	variant, err := models.GetVariant(item.VariantID)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	variant.Stock += int64(item.Quantity)
+
+	err = item.Delete()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	err = variant.UpdateStock()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Deleted"})
 }
