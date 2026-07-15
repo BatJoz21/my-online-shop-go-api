@@ -31,7 +31,8 @@ func RegisterRoutes(server *gin.Engine) {
 	custGroup.GET("orders", getAllUsersOrders)
 	custGroup.POST("orders", generateNewOrder)
 	custGroup.GET("orders/:orderID", showOrderDetail)
-	custGroup.PUT("orders/:orderID", populateGeneratedOrder)
+	custGroup.PUT("orders/:orderID/populate", populateGeneratedOrder)
+	custGroup.PUT("orders/:orderID/complete", completeOrder)
 	custGroup.DELETE("orders/:orderID", deleteOrder)
 	custGroup.POST("orders/:orderID/items", addItemToOrder)
 	custGroup.GET("orders/:orderID/items", getAllItemsFromAnOrder)
@@ -53,4 +54,8 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.PUT("products/:id/variants/:variant_id", updateProductVariant)
 	merchantGroup.PUT("products/:id/variants/:variant_id/stock", updateVariantStock)
 	merchantGroup.DELETE("products/:id/variants/:variant_id", deleteVariant)
+
+	merchantGroup.GET("merchant/orders", getAllOrder)
+	merchantGroup.GET("merchant/orders/:orderID", showOrderDetailForMerchant)
+	merchantGroup.PUT("merchant/orders/:orderID", editOrder)
 }

@@ -146,6 +146,7 @@ func createTables() {
 		status ENUM('pending', 'paid', 'shipped', 'completed', 'cancelled') DEFAULT 'pending',
 		total_amount DECIMAL(12, 2),
 		shipping_address TEXT,
+		estimated_arrival DATE NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
