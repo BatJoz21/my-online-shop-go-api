@@ -14,11 +14,13 @@ func RegisterRoutes(server *gin.Engine) {
 	server.GET("products", getAllStockedProducts)
 	server.GET("products/:id/image", getProductImage)
 	server.GET("categories", getCategories)
+	server.GET("products/:id", getStockedProduct)
+	server.GET("products/:id/variants", getAllProductVariants)
+	server.GET("products/:id/reviews", getReviewsOfAProduct)
 
 	custGroup := server.Group("/")
 	custGroup.Use(middlewares.Authenticate)
-	custGroup.GET("products/:id", getStockedProduct)
-	custGroup.GET("products/:id/variants", getAllProductVariants)
+	custGroup.GET("products/all/:id", getProduct)
 
 	custGroup.GET("cart", getCartID)
 	custGroup.GET("cart/total", getTotalItemOnCart)
@@ -38,11 +40,12 @@ func RegisterRoutes(server *gin.Engine) {
 	custGroup.GET("orders/:orderID/items", getAllItemsFromAnOrder)
 	custGroup.DELETE("orders/:orderID/items/:orderItemID", deleteOrderItem)
 
+	custGroup.POST("products/:id/reviews", addReview)
+
 	merchantGroup := server.Group("/")
 	merchantGroup.Use(middlewares.Authenticate)
 	merchantGroup.Use(middlewares.MerchantMiddleware())
 	merchantGroup.GET("products/all", getAllProducts)
-	merchantGroup.GET("products/all/:id", getProduct)
 	merchantGroup.POST("products", createNewProduct)
 	merchantGroup.PUT("products/:id", updateProduct)
 	merchantGroup.PUT("products/:id/restore", restoreSoftDeletedProduct)

@@ -72,7 +72,8 @@ func GetAllOrders(status string) (*[]GetDetailedOrderDTO, error) {
 	for rows.Next() {
 		var order GetDetailedOrderDTO
 		err := rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-			&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, &order.CreatedAt, &order.OwnerName)
+			&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, 
+			&order.CreatedAt, &order.OwnerName)
 		if err != nil {
 			return nil, err
 		}
@@ -95,6 +96,7 @@ func GetOrders(userID int64, status string) (*[]Order, error) {
 		status,
 		total_amount,
 		shipping_address,
+		estimated_arrival,
 		created_at
 	FROM orders 
 	WHERE user_id = ?`
@@ -118,7 +120,7 @@ func GetOrders(userID int64, status string) (*[]Order, error) {
 	for rows.Next() {
 		var order Order
 		err := rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-			&order.TotalAmount, &order.ShippingAddress, &order.CreatedAt)
+			&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, &order.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -174,7 +176,8 @@ func GetOrderForMerchant(id int64) (*GetDetailedOrderDTO, error) {
 
 	var order GetDetailedOrderDTO
 	err := row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-		&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, &order.CreatedAt, &order.OwnerName)
+		&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, 
+		&order.CreatedAt, &order.OwnerName)
 	if err != nil {
 		return nil, err
 	}
@@ -210,6 +213,23 @@ func GetOrderForMerchantShowPage(id int64) (*GetDetailedOrderDTO, *[]OrderItem, 
 	return order, orderItems, nil
 }
 
+func IsOrderComplete(id int64) (bool, error) {
+	query := `SELECT status FROM orders WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var status string
+	err := row.Scan(&status)
+	if err != nil {
+		return false, nil
+	}
+
+	if(status == "completed") {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (o *Order) InputData() error {
 	query := `UPDATE orders SET
 		order_number = ?,
@@ -240,7 +260,8 @@ func (o *Order) Update() error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(o.OrderNumber, o.Status, o.TotalAmount, o.ShippingAddress, o.EstimatedArrival, o.ID)
+	_, err = stmt.Exec(o.OrderNumber, o.Status, o.TotalAmount, 
+		o.ShippingAddress, o.EstimatedArrival, o.ID)
 
 	return err
 }
