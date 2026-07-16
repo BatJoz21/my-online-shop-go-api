@@ -72,7 +72,7 @@ func GetAllOrders(status string) (*[]GetDetailedOrderDTO, error) {
 	for rows.Next() {
 		var order GetDetailedOrderDTO
 		err := rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-			&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, 
+			&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival,
 			&order.CreatedAt, &order.OwnerName)
 		if err != nil {
 			return nil, err
@@ -176,7 +176,7 @@ func GetOrderForMerchant(id int64) (*GetDetailedOrderDTO, error) {
 
 	var order GetDetailedOrderDTO
 	err := row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status,
-		&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival, 
+		&order.TotalAmount, &order.ShippingAddress, &order.EstimatedArrival,
 		&order.CreatedAt, &order.OwnerName)
 	if err != nil {
 		return nil, err
@@ -213,6 +213,47 @@ func GetOrderForMerchantShowPage(id int64) (*GetDetailedOrderDTO, *[]OrderItem, 
 	return order, orderItems, nil
 }
 
+func GetOrderForPayment(orderID int64) (*OrderForPayment, error) {
+	query := `SELECT
+		orders.id,
+		orders.order_number,
+		orders.status,
+		orders.total_amount,
+		users.name,
+		users.email
+	FROM orders
+	JOIN users ON orders.user_id = users.id
+	WHERE orders.id = ?`
+	row := database.DB.QueryRow(query, orderID)
+
+	var order OrderForPayment
+	err := row.Scan(&order.ID, &order.OrderNumber, &order.Status,
+		&order.TotalAmount, &order.CustomerName, &order.CustomerEmail)
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}
+
+func GetIDStatusOrder(orderNumber string) (int64, string, error) {
+	query := `SELECT
+		id,
+		status
+	FROM orders
+	WHERE order_number = ?`
+	row := database.DB.QueryRow(query, orderNumber)
+
+	var id int64
+	var status string
+	err := row.Scan(&id, &status)
+	if err != nil {
+		return -1, "", err
+	}
+
+	return id, status, nil
+}
+
 func IsOrderComplete(id int64) (bool, error) {
 	query := `SELECT status FROM orders WHERE id = ?`
 	row := database.DB.QueryRow(query, id)
@@ -223,7 +264,7 @@ func IsOrderComplete(id int64) (bool, error) {
 		return false, nil
 	}
 
-	if(status == "completed") {
+	if status == "completed" {
 		return true, nil
 	}
 
@@ -260,8 +301,23 @@ func (o *Order) Update() error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(o.OrderNumber, o.Status, o.TotalAmount, 
+	_, err = stmt.Exec(o.OrderNumber, o.Status, o.TotalAmount,
 		o.ShippingAddress, o.EstimatedArrival, o.ID)
+
+	return err
+}
+
+func SetOrderToPaid(orderNumber string) error {
+	query := `UPDATE orders SET
+		status = ?,
+	WHERE order_number = ?`
+	stmt, err := database.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec("paid", orderNumber)
 
 	return err
 }

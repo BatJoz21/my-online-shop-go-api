@@ -17,3 +17,12 @@ type GetDetailedOrderDTO struct {
 	CreatedAt        time.Time       `json:"created_at"`
 	OwnerName        string          `json:"owner_name"`
 }
+
+type OrderForPayment struct {
+	ID            int64           `json:"id"`
+	OrderNumber   string          `json:"order_number"`
+	Status        string          `json:"status"`
+	TotalAmount   decimal.Decimal `json:"total_amount"`
+	CustomerName  string          `json:"customer_name"`
+	CustomerEmail string          `json:"customer_email"`
+}

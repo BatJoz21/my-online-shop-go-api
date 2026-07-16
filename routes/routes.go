@@ -15,11 +15,16 @@ func RegisterRoutes(server *gin.Engine) {
 	server.GET("products/:id/image", getProductImage)
 	server.GET("categories", getCategories)
 	server.GET("products/:id", getStockedProduct)
+
 	server.GET("products/:id/variants", getAllProductVariants)
+
+	server.POST("payments/webhook", handlePaymentWebhook)
+
 	server.GET("products/:id/reviews", getReviewsOfAProduct)
 
 	custGroup := server.Group("/")
 	custGroup.Use(middlewares.Authenticate)
+	custGroup.Use(middlewares.CustomerMiddleware())
 	custGroup.GET("products/all/:id", getProduct)
 
 	custGroup.GET("cart", getCartID)
@@ -39,6 +44,8 @@ func RegisterRoutes(server *gin.Engine) {
 	custGroup.POST("orders/:orderID/items", addItemToOrder)
 	custGroup.GET("orders/:orderID/items", getAllItemsFromAnOrder)
 	custGroup.DELETE("orders/:orderID/items/:orderItemID", deleteOrderItem)
+
+	custGroup.POST("orders/:orderID/payment", initiatePayment)
 
 	custGroup.POST("products/:id/reviews", addReview)
 
