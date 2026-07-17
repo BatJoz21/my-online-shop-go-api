@@ -6,7 +6,7 @@ func createTables() {
 		name VARCHAR(100) NOT NULL,
 		email VARCHAR(150) UNIQUE NOT NULL,
 		password_hash VARCHAR(225) NOT NULL,
-		role ENUM('customer', 'merchant', 'admin') DEFAULT 'customer',
+		role ENUM('customer', 'merchant', 'superadmin') DEFAULT 'customer',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 	)`

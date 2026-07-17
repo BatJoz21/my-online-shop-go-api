@@ -64,3 +64,34 @@ func GetUserDataForRefreshToken(id int64) (*StoredUserData, error) {
 
 	return &userData, err
 }
+
+func GetUsers() (*[]User, error) {
+	query := `SELECT
+		id,
+		name,
+		email,
+		role,
+		created_at
+	FROM users`
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []User
+	for rows.Next() {
+		var u User
+		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return  &users, nil
+}

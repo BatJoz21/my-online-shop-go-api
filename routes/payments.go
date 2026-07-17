@@ -58,6 +58,9 @@ func initiatePayment(context *gin.Context) {
 			FName: order.CustomerName,
 			Email: order.CustomerEmail,
 		},
+		Callbacks: &snap.Callbacks{
+			Finish: os.Getenv("CI4_BASE_URL") + "orders/" + strconv.FormatInt(id, 10) + "/payment/result",
+		},
 	}
 
 	snapResponse, midtransErr := snapClient.CreateTransaction(req)
