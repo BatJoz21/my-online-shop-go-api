@@ -18,12 +18,15 @@ func RegisterRoutes(server *gin.Engine) {
 
 	server.GET("products/:id/variants", getAllProductVariants)
 
-	server.POST("payments/webhook", handlePaymentWebhook)
+	server.POST("/payments/webhook", handlePaymentWebhook)
 
 	server.GET("products/:id/reviews", getReviewsOfAProduct)
 
-	custGroup := server.Group("/")
-	custGroup.Use(middlewares.Authenticate)
+	authGroup := server.Group("")
+	authGroup.Use(middlewares.Authenticate)
+	authGroup.POST("/profile", getUserProfile)
+
+	custGroup := authGroup.Group("/")
 	custGroup.Use(middlewares.CustomerMiddleware())
 
 	custGroup.GET("cart", getCartID)
@@ -48,8 +51,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	custGroup.POST("products/:id/reviews", addReview)
 
-	merchantGroup := server.Group("/merchant/")
-	merchantGroup.Use(middlewares.Authenticate)
+	merchantGroup := authGroup.Group("/merchant/")
 	merchantGroup.Use(middlewares.MerchantMiddleware())
 	merchantGroup.POST("products", createNewProduct)
 	merchantGroup.GET("products", getAllProducts)
@@ -69,8 +71,9 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.GET("orders/:orderID", showOrderDetailForMerchant)
 	merchantGroup.PUT("orders/:orderID", editOrder)
 
-	superadminGroup := server.Group("/admin/")
-	superadminGroup.Use(middlewares.Authenticate)
+	superadminGroup := authGroup.Group("/admin/")
 	superadminGroup.Use(middlewares.SuperAdminMiddleware())
 	superadminGroup.GET("users", getAllUsers)
+	superadminGroup.GET("users/:uID", getUser)
+	superadminGroup.PUT("users/:uID/role", updateUserRole)
 }

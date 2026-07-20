@@ -309,7 +309,7 @@ func (o *Order) Update() error {
 
 func SetOrderToPaid(orderNumber string) error {
 	query := `UPDATE orders SET
-		status = ?,
+		status = ?
 	WHERE order_number = ?`
 	stmt, err := database.DB.Prepare(query)
 	if err != nil {

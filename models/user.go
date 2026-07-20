@@ -81,8 +81,7 @@ func GetUsers() (*[]User, error) {
 	var users []User
 	for rows.Next() {
 		var u User
-		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt)
-		if err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -93,5 +92,47 @@ func GetUsers() (*[]User, error) {
 		return nil, err
 	}
 
-	return  &users, nil
+	return &users, nil
+}
+
+func GetUser(id int64) (*User, error) {
+	query := `SELECT
+		id,
+		name,
+		email,
+		role,
+		created_at
+	FROM users WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var u User
+	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	return &u, nil
+}
+
+func GetUserForProfile(id int64) (*User, error) {
+	query := `SELECT
+		name,
+		email,
+	FROM users WHERE id = ?`
+	row := database.DB.QueryRow(query)
+
+	var u User
+	if err := row.Scan(&u.Name, &u.Email); err != nil {
+		return nil, err
+	}
+
+	return &u, nil
+}
+
+func UpdateRole(id int64, role string) error {
+	query := `UPDATE users SET
+		role = ?
+	WHERE id = ?`
+	_, err := database.DB.Exec(query, role, id)
+
+	return err
 }

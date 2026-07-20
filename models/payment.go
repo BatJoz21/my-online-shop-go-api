@@ -42,7 +42,7 @@ func (p *Payment) Save() error {
 }
 
 func UpdateFromWebhook(orderNumber string, newStatus, transactionID string, rawResponse []byte) error {
-	paymentID, orderStatus, err := GetIDStatusOrder(orderNumber)
+	orderID, orderStatus, err := GetIDStatusOrder(orderNumber)
 	if err != nil {
 		return err
 	}
@@ -63,9 +63,9 @@ func UpdateFromWebhook(orderNumber string, newStatus, transactionID string, rawR
 		transaction_id = ?,
 		paid_at = ?,
 		raw_response = ?
-	WHERE id = ?`
+	WHERE order_id = ?`
 
-	_, err = database.DB.Exec(query, newStatus, transactionID, paidAt, rawResponse, paymentID)
+	_, err = database.DB.Exec(query, newStatus, transactionID, paidAt, rawResponse, orderID)
 	if err != nil {
 		return err
 	}

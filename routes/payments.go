@@ -23,7 +23,7 @@ func initiatePayment(context *gin.Context) {
 	}
 
 	order, err := models.GetOrderForPayment(id)
-	if err != sql.ErrNoRows {
+	if err == sql.ErrNoRows {
 		context.JSON(http.StatusNotFound, gin.H{"message": "Order not found"})
 		return
 	}
