@@ -53,6 +53,11 @@ func RegisterRoutes(server *gin.Engine) {
 
 	merchantGroup := authGroup.Group("/merchant/")
 	merchantGroup.Use(middlewares.MerchantMiddleware())
+	merchantGroup.GET("dashboard/stats", getDashboardStatsData)
+	merchantGroup.GET("dashboard/orders", getRecentOrdersData)
+	merchantGroup.GET("dashboard/low-stocked", getLowStockProductsData)
+	merchantGroup.GET("dashboard/review", getRecentReviewData)
+
 	merchantGroup.POST("products", createNewProduct)
 	merchantGroup.GET("products", getAllProducts)
 	merchantGroup.GET("products/:id", getProduct)
