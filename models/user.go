@@ -19,9 +19,10 @@ type User struct {
 type UserRole string
 
 const (
-	RoleCustomer UserRole = "customer"
-	RoleMerchant UserRole = "merchant"
-	RoleAdmin    UserRole = "admin"
+	RoleCustomer     UserRole = "customer"
+	RoleMerchant     UserRole = "merchant"
+	RoleAdmin        UserRole = "admin"
+	UserPerPageLimit int      = 20
 )
 
 func (u *User) Save() error {
@@ -65,7 +66,7 @@ func GetUserDataForRefreshToken(id int64) (*StoredUserData, error) {
 	return &userData, err
 }
 
-func GetUsers() (*[]User, error) {
+func GetUsers(search, role string, offset int) (*[]User, error) {
 	query := `SELECT
 		id,
 		name,
@@ -73,10 +74,32 @@ func GetUsers() (*[]User, error) {
 		role,
 		created_at
 	FROM users`
-	rows, err := database.DB.Query(query)
+
+	var args []any
+
+	if search != "" {
+		query += ` WHERE name LIKE ? OR email LIKE ?`
+		args = append(args, "%"+search+"%")
+		args = append(args, "%"+search+"%")
+
+		if role != "" {
+			query += ` AND role LIKE ?`
+			args = append(args, role)
+		}
+	} else if role != "" {
+		query += ` WHERE role LIKE ?`
+		args = append(args, role)
+	}
+
+	query += ` LIMIT ? OFFSET ?`
+	args = append(args, UserPerPageLimit)
+	args = append(args, offset)
+
+	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var users []User
 	for rows.Next() {
@@ -107,21 +130,6 @@ func GetUser(id int64) (*User, error) {
 
 	var u User
 	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt); err != nil {
-		return nil, err
-	}
-
-	return &u, nil
-}
-
-func GetUserForProfile(id int64) (*User, error) {
-	query := `SELECT
-		name,
-		email,
-	FROM users WHERE id = ?`
-	row := database.DB.QueryRow(query)
-
-	var u User
-	if err := row.Scan(&u.Name, &u.Email); err != nil {
 		return nil, err
 	}
 

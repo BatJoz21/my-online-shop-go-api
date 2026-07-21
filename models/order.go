@@ -18,6 +18,10 @@ type Order struct {
 	CreatedAt        time.Time       `json:"created_at"`
 }
 
+const (
+	OrderPerPageLimit = 10
+)
+
 func (o *Order) GenerateNew() error {
 	query := `INSERT INTO orders(user_id, order_number, status, total_amount, shipping_address)
 		VALUES (?, ?, ?, ?, ?)`
@@ -40,7 +44,7 @@ func (o *Order) GenerateNew() error {
 	return nil
 }
 
-func GetAllOrders(status string) (*[]GetDetailedOrderDTO, error) {
+func GetAllOrders(status, filter, search string) (*[]GetDetailedOrderDTO, error) {
 	query := `SELECT
 		orders.id,
 		orders.user_id,
@@ -58,9 +62,17 @@ func GetAllOrders(status string) (*[]GetDetailedOrderDTO, error) {
 	if status != "" {
 		query += ` WHERE orders.status = ?`
 		args = append(args, status)
+
+		if filter != "" && search != "" {
+			query += ` AND ` + filter + ` LIKE ?`
+			args = append(args, "%"+search+"%")
+		}
+	} else if filter != "" && search != "" {
+		query += ` WHERE ` + filter + ` LIKE ?`
+		args = append(args, "%"+search+"%")
 	}
 
-	query += ` ORDER BY orders.id ASC`
+	query += ` ORDER BY orders.id DESC`
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
@@ -88,7 +100,7 @@ func GetAllOrders(status string) (*[]GetDetailedOrderDTO, error) {
 	return &orders, nil
 }
 
-func GetOrders(userID int64, status string) (*[]Order, error) {
+func GetOrders(userID int64, status string, offset int) (*[]Order, error) {
 	query := `SELECT
 		id,
 		user_id,
@@ -108,7 +120,9 @@ func GetOrders(userID int64, status string) (*[]Order, error) {
 		args = append(args, status)
 	}
 
-	query += ` ORDER BY id ASC`
+	query += ` ORDER BY id DESC
+		LIMIT 10 OFFSET ?`
+	args = append(args, offset)
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {

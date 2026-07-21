@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -66,8 +67,9 @@ func initiatePayment(context *gin.Context) {
 	snapResponse, midtransErr := snapClient.CreateTransaction(req)
 	if midtransErr != nil {
 		context.JSON(http.StatusBadGateway, gin.H{
-			"error": "Failed to initiate payment",
-			"detai": midtransErr.GetMessage()})
+			"error":  "Failed to initiate payment",
+			"detail": midtransErr.GetMessage()})
+		log.Println(midtransErr.GetMessage())
 		return
 	}
 

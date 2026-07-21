@@ -24,7 +24,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	authGroup := server.Group("")
 	authGroup.Use(middlewares.Authenticate)
-	authGroup.POST("/profile", getUserProfile)
+	authGroup.GET("/profile/:uID", getUserProfile)
 
 	custGroup := authGroup.Group("/")
 	custGroup.Use(middlewares.CustomerMiddleware())

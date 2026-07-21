@@ -44,7 +44,7 @@ func (p *Product) Save() error {
 	return nil
 }
 
-func GetAllProducts(category string, offset int) ([]Product, error) {
+func GetAllProducts(category int64, search string, isActive, offset int) ([]Product, error) {
 	query := `SELECT
 		products.id,
 		products.category_id,
@@ -57,11 +57,26 @@ func GetAllProducts(category string, offset int) ([]Product, error) {
 		categories.name AS category_name
 	FROM products
 	JOIN categories ON products.category_id = categories.id
-	WHERE products.is_active = ?
-	ORDER BY products.id ASC
-	LIMIT ? OFFSET ?`
+	WHERE products.is_active = ?`
 
-	rows, err := database.DB.Query(query, 1, ProductPerPageLimit, offset)
+	var args []any
+	args = append(args, isActive)
+
+	if category != 0 {
+		query += ` AND products.category_id = ?`
+		args = append(args, category)
+	}
+
+	if search != "" {
+		query += ` AND products.name LIKE ?`
+		args = append(args, "%"+search+"%")
+	}
+
+	query += " ORDER BY products.id DESC LIMIT ? OFFSET ?"
+	args = append(args, ProductPerPageLimit)
+	args = append(args, offset)
+
+	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +135,7 @@ func GetAllStockedProducts(category int64, search string, offset int) (*[]Produc
 	query += ` 
 	GROUP BY product_variants.product_id
 	HAVING SUM(product_variants.stock) > 0
-	ORDER BY products.id ASC
+	ORDER BY products.id DESC
 	LIMIT ? OFFSET ?`
 
 	args = append(args, ProductPerPageLimit)

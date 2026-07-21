@@ -9,7 +9,17 @@ import (
 )
 
 func getAllUsers(context *gin.Context) {
-	users, err := models.GetUsers()
+	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	search := context.DefaultQuery("search", "")
+	role := context.DefaultQuery("role", "")
+
+	offset := models.UserPerPageLimit * (page - 1)
+
+	users, err := models.GetUsers(search, role, offset)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return

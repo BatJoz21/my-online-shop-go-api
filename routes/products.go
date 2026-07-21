@@ -50,7 +50,12 @@ func createNewProduct(context *gin.Context) {
 }
 
 func getAllProducts(context *gin.Context) {
-	category := context.DefaultQuery("category", "")
+	category, err := strconv.ParseInt(context.DefaultQuery("category", "0"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	search := context.DefaultQuery("search", "")
 
 	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
 	if err != nil {
@@ -59,7 +64,7 @@ func getAllProducts(context *gin.Context) {
 	}
 	offset := 0 + (models.ProductPerPageLimit * (page - 1))
 
-	products, err := models.GetAllProducts(category, offset)
+	products, err := models.GetAllProducts(category, search, 1, offset)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return

@@ -42,8 +42,17 @@ func generateNewOrder(context *gin.Context) {
 
 func getAllOrder(context *gin.Context) {
 	status := context.DefaultQuery("status", "")
+	filter := context.DefaultQuery("filter", "none")
+	search := context.DefaultQuery("search", "")
 
-	orders, err := models.GetAllOrders(status)
+	filterMap := map[string]string{
+		"order-number": "orders.order_number",
+		"total-amount": "orders.total_amount",
+		"name":         "users.name",
+		"none":         "",
+	}
+
+	orders, err := models.GetAllOrders(status, filterMap[filter], search)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -55,8 +64,15 @@ func getAllOrder(context *gin.Context) {
 func getAllUsersOrders(context *gin.Context) {
 	uID := context.GetInt64("userId")
 	status := context.DefaultQuery("status", "")
+	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
 
-	orders, err := models.GetOrders(uID, status)
+	offset := models.OrderPerPageLimit * (page - 1)
+
+	orders, err := models.GetOrders(uID, status, offset)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
