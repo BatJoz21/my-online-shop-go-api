@@ -58,6 +58,8 @@ func RegisterRoutes(server *gin.Engine) {
 	merchantGroup.GET("dashboard/low-stocked", getLowStockProductsData)
 	merchantGroup.GET("dashboard/review", getRecentReviewData)
 
+	merchantGroup.POST("categories", addNewCategory)
+
 	merchantGroup.POST("products", createNewProduct)
 	merchantGroup.GET("products", getAllProducts)
 	merchantGroup.GET("products/:id", getProduct)
