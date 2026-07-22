@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func MerchantMiddleware() gin.HandlerFunc {
+func SuperAdminMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		role := context.GetString("userRole")
 
-		if role != "merchant" && role != "superadmin" {
-			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "access denied"})
+		if role != "superadmin" {
+			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Access denied"})
 			return
 		}
 

@@ -6,3 +6,7 @@ type StoredUserData struct {
 	Email string   `json:"email"`
 	Role  UserRole `json:"role"`
 }
+
+type UpdateRoleDTO struct {
+	Role string `json:"role"`
+}

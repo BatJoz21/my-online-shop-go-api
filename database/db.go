@@ -41,7 +41,7 @@ func getDatasourceName() string {
 	password := os.Getenv("DB_PASSWORD")
 	db_name := os.Getenv("DB_NAME")
 
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&timeout=5s",
 		user,
 		password,
 		host,
