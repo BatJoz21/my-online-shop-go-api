@@ -90,6 +90,19 @@ func GetVariant(id int64) (*ProductVariant, error) {
 	return &pv, nil
 }
 
+func GetVariantStock(id int64) (int64, error) {
+	query := `SELECT stock FROM product_variants WHERE id = ?`
+	row := database.DB.QueryRow(query, id)
+
+	var stock int64
+	err := row.Scan(&stock)
+	if err != nil {
+		return 0, err
+	}
+
+	return stock, nil
+}
+
 func (pV *ProductVariant) Update() error {
 	query := `UPDATE product_variants SET
 		product_id = ?,

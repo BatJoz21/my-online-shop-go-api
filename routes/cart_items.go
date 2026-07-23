@@ -23,6 +23,16 @@ func addItemToCart(context *gin.Context) {
 		return
 	}
 
+	itemStock, err := models.GetVariantStock(dto.VariantID)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+	if dto.Quantity > int(itemStock) {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Insufficient product stock"})
+		return
+	}
+
 	priceSnapshot, err := decimal.NewFromString(dto.PriceSnapshot)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
