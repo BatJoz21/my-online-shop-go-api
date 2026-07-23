@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/BatJoz21/my-online-shop-go-api/database"
 	"github.com/BatJoz21/my-online-shop-go-api/routes"
 	"github.com/gin-gonic/gin"
@@ -9,7 +11,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		panic(".env file not found, using environment variables")
+		log.Println(".env file not found, using environment variables")
 	}
 
 	database.InitDB()

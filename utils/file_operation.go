@@ -15,7 +15,7 @@ import (
 
 const (
 	MaxFileSize     = 10 * 1024 * 1024
-	UploadRoots     = "uploads/"
+	UploadRoots     = "/app/uploads/"
 	ProductImageDir = "products/image/"
 )
 
